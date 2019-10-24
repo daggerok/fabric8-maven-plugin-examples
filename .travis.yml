@@ -1,0 +1,79 @@
+notifications:
+  email: false
+git:
+  quiet: true
+  depth: false
+jdk: openjdk11
+node_js: lts/*
+python: 3.7
+matrix:
+  include:
+    - python: 3.7
+services: docker
+addons:
+  apt:
+    update: true
+    packages:
+      - python3-setuptools
+      - python3-pip
+      #- sudo
+      #- lsof
+      #- curl
+      - jq
+install: true
+before_install:
+  - |
+    if [ ! -f ${HOME}/.local/daggerok/bash-functions/master/main.bash ] ; then
+      mkdir -p ${HOME}/.local/daggerok/bash-functions/master ;
+      curl -s https://raw.githubusercontent.com/daggerok/bash-functions/master/main.bash > ${HOME}/.local/daggerok/bash-functions/master/main.bash ;
+    fi
+    source ${HOME}/.local/daggerok/bash-functions/master/main.bash ;
+  - stop_any 80 5432 8080
+  #
+  - export PATH=$HOME/.local/bin:$PATH
+  - pip -V
+  - pip3 install --user --upgrade pip
+  - pip install --user --upgrade httpie
+  - http --version --debug
+  - pip -V
+jobs:
+  include:
+    - stage: test
+      jdk: openjdk11
+      name: test step0
+      script:
+        - cd $TRAVIS_BUILD_DIR && ./mvnw -f step0-zero-configuration clean package docker:build docker:start
+        - wait_for 8080
+        - http :8080
+        - cd $TRAVIS_BUILD_DIR && ./mvnw -f step0-zero-configuration docker:stop docker:remove
+        - stop_any 8080
+    - stage: test
+      jdk: openjdk11
+      name: test step1
+      script:
+        - cd $TRAVIS_BUILD_DIR && ./mvnw -f step1-zero-configuration clean package docker:build docker:start
+        - wait_for 8080
+        - http :8080
+        - cd $TRAVIS_BUILD_DIR && ./mvnw -f step1-zero-configuration docker:stop docker:remove
+        - stop_any 8080
+    - stage: test
+      jdk: openjdk11
+      name: test step2
+      script:
+        - cd $TRAVIS_BUILD_DIR && ./mvnw -f step2-zero-configuration
+        - wait_for 8080
+        - http :8080
+        - cd $TRAVIS_BUILD_DIR && ./mvnw -f step2-zero-configuration docker:stop docker:remove
+        - stop_any 8080
+    - stage: test
+      jdk: openjdk11
+      name: versions display-property-updates
+      script: ./mvnw versions:display-property-updates
+cache:
+  npm: true
+  pip: true
+  packages: true
+  directories:
+    - ~/.m2
+    - ~/.docker
+    - ~/.local/daggerok
