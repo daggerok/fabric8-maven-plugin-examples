@@ -5,23 +5,33 @@ git:
   depth: false
 jdk: openjdk11
 node_js: lts/*
+services:
+  - docker
+  - xvfb
 python: 3.7
 matrix:
   include:
     - python: 3.7
-services: docker
 addons:
   apt:
-    update: true
+    update: false
     packages:
+      - jq
+      - bash
+      - curl
+      - tree
+      - docker-ce
+      - libxml2-utils
+      - libappindicator1
+      - fonts-liberation
+      - google-chrome-stable
       - python3-setuptools
       - python3-pip
-      #- sudo
-      #- lsof
-      #- curl
-      - jq
 install: true
 before_install:
+  - export CHROME_BIN=/usr/bin/google-chrome
+  - export DISPLAY=:99.0
+  #
   - |
     if [ ! -f ${HOME}/.local/daggerok/bash-functions/master/main.bash ] ; then
       mkdir -p ${HOME}/.local/daggerok/bash-functions/master ;
@@ -32,8 +42,9 @@ before_install:
   #
   - export PATH=$HOME/.local/bin:$PATH
   - pip -V
+  - docker-compose version
   - pip3 install --user --upgrade pip
-  - pip install --user --upgrade httpie
+  - pip install --user --upgrade httpie docker-compose
   - http --version --debug
   - pip -V
 jobs:
