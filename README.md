@@ -201,3 +201,4 @@ http :8080
 * https://github.com/fabric8io/fabric8-maven-plugin
 * https://github.com/fabric8io/fabric8-maven-plugin/tree/master/samples
 * https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html
+* https://www.youtube.com/watch?v=bkC1spGOI7Y
